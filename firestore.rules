@@ -39,25 +39,27 @@ service cloud.firestore {
 
     // The code changes every 20 seconds on the lecturer's screen.
     // Accept the current code (while the lecturer's screen is still open)
-    // or the previous one for 20 more seconds.
+    // or the previous one for 30 more seconds.
     function codeIsFresh(s) {
-      let code = request.resource.data.token;
-      return (code == s.token &&
-                request.time < s.tokenAt + duration.value(45, 's')) ||
-             (s.prevToken != '' && code == s.prevToken &&
-                request.time < s.tokenAt + duration.value(20, 's'));
+      return (request.resource.data.token == s.token &&
+                request.time < s.tokenAt + duration.value(90, 's')) ||
+             (s.prevToken != '' && request.resource.data.token == s.prevToken &&
+                request.time < s.tokenAt + duration.value(30, 's'));
     }
 
     // When the lecturer turned on the location check, the student must be
     // inside the allowed distance (same formula as the app).
+    function distanceSquared(s) {
+      let dy = (request.resource.data.lat - s.lat) * 110574;
+      let dx = (request.resource.data.lng - s.lng) * s.lngScale;
+      return dx * dx + dy * dy;
+    }
+
     function insideClassroom(s) {
-      let d = request.resource.data;
-      return !('radius' in s) || s.radius == 0 || (
-        ('lat' in d) && ('lng' in d) && d.lat is number && d.lng is number &&
-        math.sqrt(
-          math.pow((d.lat - s.lat) * 110574, 2) +
-          math.pow((d.lng - s.lng) * s.lngScale, 2)
-        ) <= s.radius + s.tolerance
+      return s.get('radius', 0) == 0 || (
+        request.resource.data.get('lat', null) is number &&
+        request.resource.data.get('lng', null) is number &&
+        distanceSquared(s) <= (s.radius + s.tolerance) * (s.radius + s.tolerance)
       );
     }
 
