@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Tebyan - courses, lectures and QR attendance">
+  <meta name="theme-color" content="#273526">
+
+  <!-- Add to Home Screen (iPhone / Android) -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Tebyan">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+  <link rel="icon" type="image/png" href="favicon.png"/>
+  <title>Tebyan | تبيان</title>
+  <link rel="manifest" href="manifest.json">
+
+  <style>
+    html, body { margin: 0; height: 100%; background: #273526; }
+    #splash {
+      position: fixed; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 18px;
+      background: linear-gradient(135deg, #1d291c, #2f4532 55%, #45624e);
+      transition: opacity .4s ease;
+    }
+    #splash img { width: 120px; height: 120px; border-radius: 28px;
+      box-shadow: 0 16px 40px rgba(0,0,0,.35); }
+    #splash .dot { width: 10px; height: 10px; border-radius: 50%;
+      background: #c9963f; animation: pulse 1s infinite ease-in-out; }
+    @keyframes pulse { 0%,100% { transform: scale(.6); opacity: .5 } 50% { transform: scale(1.2); opacity: 1 } }
+  </style>
+</head>
+<body>
+  <div id="splash">
+    <img src="icons/Icon-192.png" alt="Tebyan">
+    <div class="dot"></div>
+  </div>
+  <script>
+    // Hide the splash screen once Flutter has drawn its first frame.
+    window.addEventListener('flutter-first-frame', function () {
+      var s = document.getElementById('splash');
+      if (s) { s.style.opacity = '0'; setTimeout(function () { s.remove(); }, 450); }
+    });
+  </script>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

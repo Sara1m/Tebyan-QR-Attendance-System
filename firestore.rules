@@ -1,0 +1,108 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- helpers ----------
+    function signedIn() { return request.auth != null; }
+
+    function isAdmin() {
+      return signedIn() && request.auth.token.email == 'tebyan@app.com';
+    }
+
+    function profile() {
+      return get(/databases/$(database)/documents/Users/$(request.auth.uid)).data;
+    }
+
+    function hasProfile() {
+      return signedIn() &&
+        exists(/databases/$(database)/documents/Users/$(request.auth.uid));
+    }
+
+    function isLecturer() {
+      return hasProfile() && profile().type in ['Lecturere', 'Lecturer'];
+    }
+
+    // The lecturer is assigned to this course
+    function teaches(courseId) {
+      return isLecturer() && courseId in profile().courses;
+    }
+
+    // The student is registered in this course
+    function enrolled(courseId) {
+      return hasProfile() && profile().type == 'Student' &&
+        courseId in profile().courses;
+    }
+
+    function session(courseId, lectureId) {
+      return get(/databases/$(database)/documents/Courses/$(courseId)/Lectures/$(lectureId)/Session/current).data;
+    }
+
+    // The code changes every 20 seconds on the lecturer's screen.
+    // Accept the current code (while the lecturer's screen is still open)
+    // or the previous one for 20 more seconds.
+    function codeIsFresh(s) {
+      let code = request.resource.data.token;
+      return (code == s.token &&
+                request.time < s.tokenAt + duration.value(45, 's')) ||
+             (s.prevToken != '' && code == s.prevToken &&
+                request.time < s.tokenAt + duration.value(20, 's'));
+    }
+
+    // When the lecturer turned on the location check, the student must be
+    // inside the allowed distance (same formula as the app).
+    function insideClassroom(s) {
+      let d = request.resource.data;
+      return !('radius' in s) || s.radius == 0 || (
+        ('lat' in d) && ('lng' in d) && d.lat is number && d.lng is number &&
+        math.sqrt(
+          math.pow((d.lat - s.lat) * 110574, 2) +
+          math.pow((d.lng - s.lng) * s.lngScale, 2)
+        ) <= s.radius + s.tolerance
+      );
+    }
+
+    function canCheckIn(courseId, lectureId) {
+      let s = session(courseId, lectureId);
+      return request.time < s.expiresAt && codeIsFresh(s) && insideClassroom(s);
+    }
+
+    // ---------- users ----------
+    match /Users/{uid} {
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == uid) || isLecturer();
+      allow write: if isAdmin();
+    }
+
+    // ---------- courses ----------
+    match /Courses/{courseId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+
+      match /Lectures/{lectureId} {
+        allow read: if signedIn();
+        allow write: if isAdmin() || teaches(courseId);
+
+        // Secret attendance code: only the lecturer can see it
+        match /Session/{doc} {
+          allow read, write: if isAdmin() || teaches(courseId);
+        }
+
+        match /Attendance/{studentId} {
+          allow read: if isAdmin() || teaches(courseId) ||
+            (signedIn() && request.auth.uid == studentId);
+
+          // Lecturer can mark manually. A student can only record their own
+          // attendance, with the code shown right now, before attendance
+          // closes, and from inside the classroom (when required).
+          allow create: if isAdmin() || teaches(courseId) || (
+            signedIn() && request.auth.uid == studentId &&
+            enrolled(courseId) &&
+            request.resource.data.studentId == studentId &&
+            canCheckIn(courseId, lectureId)
+          );
+
+          allow update, delete: if isAdmin() || teaches(courseId);
+        }
+      }
+    }
+  }
+}
