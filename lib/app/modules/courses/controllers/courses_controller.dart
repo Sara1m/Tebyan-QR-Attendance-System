@@ -8,6 +8,9 @@ import 'package:line_icons/line_icons.dart';
 
 import '../../../src/alert.dart';
 import '../../../src/bottom_sheet.dart';
+import '../../../src/colors.dart';
+import '../../../src/demo_data.dart';
+import '../../../src/demo_data_list.dart';
 import '../../../src/dialogs.dart';
 import '../../../src/errors.dart';
 import '../../../src/widgets.dart';
@@ -24,6 +27,7 @@ class CoursesController extends GetxController {
   final TextEditingController hours = TextEditingController();
 
   StreamSubscription? _sub;
+  final RxString demoStep = ''.obs;
   CollectionReference<Map<String, dynamic>> get _col =>
       FirebaseFirestore.instance.collection('Courses');
 
@@ -185,6 +189,198 @@ class CoursesController extends GetxController {
       onConfirm: () async {
         await _col.doc(course.id).delete();
         Ui.success('Course deleted');
+      },
+    );
+  }
+
+  // ---------- Demo data ----------
+
+  void _setStep(String key, [Map<String, String>? params]) =>
+      demoStep.value = params == null ? key.tr : key.trParams(params);
+
+  void openDemoSheet() {
+    demoStep.value = '';
+    AppBottomSheet(
+      buttonText: 'Generate demo data'.tr,
+      function: _generateDemo,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 14),
+          Row(children: [
+            const IconBubble(icon: Icons.auto_awesome),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text('Demo data'.tr,
+                  style: const TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.bold)),
+            ),
+          ]),
+          const SizedBox(height: 10),
+          Text(
+              'Fills the app with @c courses, @l lecturers and @s students, with lectures and past attendance — ready for screenshots and demos. Anything that already exists is kept.'
+                  .trParams({
+                'c': '${DemoData.courses.length}',
+                'l': '${DemoData.lecturers.length}',
+                's': '${DemoData.students.length}',
+              }),
+              style: TextStyle(color: Colors.grey[700], height: 1.5)),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+                color: AppColors.accent.withOpacity(.1),
+                borderRadius: BorderRadius.circular(14)),
+            child: Text(
+                'Every new account gets its own strong password. You will see them all once at the end, with a button to copy them.'
+                    .tr,
+                style: TextStyle(
+                    color: AppColors.primaryColor,
+                    fontWeight: FontWeight.bold)),
+          ),
+          const SizedBox(height: 12),
+          Obx(() => demoStep.value.isEmpty
+              ? const SizedBox()
+              : Row(children: [
+                  SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: AppColors.color1)),
+                  const SizedBox(width: 10),
+                  Expanded(child: Text(demoStep.value)),
+                ])),
+          const SizedBox(height: 6),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TextButton.icon(
+              style: TextButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  foregroundColor: AppColors.danger),
+              onPressed: _confirmRemoveDemo,
+              icon: const Icon(Icons.delete_sweep_outlined),
+              label: Text('Delete demo lectures'.tr),
+            ),
+          ),
+        ],
+      ),
+    ).bottomSheet();
+  }
+
+  Future<void> _generateDemo() async {
+    try {
+      final r = await DemoDataService.generate(_setStep);
+      demoStep.value = '';
+      Get.back();
+      Ui.success(
+          'Done: @a new accounts, @l lectures and @t attendance records.'
+              .trParams({
+        'a': '${r.accountsCreated}',
+        'l': '${r.lecturesCreated}',
+        't': '${r.attendanceCreated}',
+      }));
+      if (r.newAccounts.isNotEmpty) _showAccounts(r);
+      if (r.stoppedByLimit) {
+        Future.delayed(const Duration(seconds: 4), () {
+          Ui.info(
+              'Firebase allows a limited number of new accounts per hour. Run it again in an hour to finish.');
+        });
+      }
+    } catch (e) {
+      demoStep.value = '';
+      AppErrors.show(e);
+    }
+  }
+
+  /// Shows the new accounts and passwords once, with a button to copy them.
+  void _showAccounts(DemoResult r) {
+    Get.dialog(
+      Dialog(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(20),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: 560, maxHeight: Get.height * .85),
+          child: Padding(
+            padding: const EdgeInsets.all(22),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text('New accounts'.tr,
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                      color: AppColors.danger.withOpacity(.08),
+                      borderRadius: BorderRadius.circular(14)),
+                  child: Text(
+                      'Copy these passwords now and keep them somewhere safe. They are shown only once and are not saved in the app.'
+                          .tr,
+                      style: TextStyle(color: AppColors.danger, height: 1.5)),
+                ),
+                const SizedBox(height: 12),
+                Flexible(
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: r.newAccounts.length,
+                    separatorBuilder: (_, __) => const Divider(height: 1),
+                    itemBuilder: (_, i) {
+                      final a = r.newAccounts[i];
+                      return ListTile(
+                        dense: true,
+                        title: Text('${a['name']} · ${a['type']}'),
+                        subtitle: Directionality(
+                          textDirection: TextDirection.ltr,
+                          child: Text('${a['email']}   ${a['password']}'),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 50,
+                  child: TextButton.icon(
+                    onPressed: () async {
+                      await Clipboard.setData(ClipboardData(text: r.accountsCsv));
+                      Ui.success(
+                          'Copied. Paste it into Excel or Notes and save it.');
+                    },
+                    icon: const Icon(Icons.copy_all_outlined),
+                    label: Text('Copy all (for Excel)'.tr),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextButton(
+                  style: TextButton.styleFrom(
+                      backgroundColor: AppColors.color4,
+                      foregroundColor: AppColors.primaryColor),
+                  onPressed: () => Get.back(),
+                  child: Text('Close'.tr),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      barrierDismissible: false,
+    );
+  }
+
+  void _confirmRemoveDemo() {
+    AppDialogs.confirm(
+      title: 'Delete demo lectures',
+      message:
+          'This deletes the demo lectures and their attendance. Courses and accounts stay.'
+              .tr,
+      onConfirm: () async {
+        final n = await DemoDataService.removeDemoLectures(_setStep);
+        demoStep.value = '';
+        Ui.success('@n demo lectures deleted'.trParams({'n': '$n'}));
       },
     );
   }

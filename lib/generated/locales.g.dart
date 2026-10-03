@@ -261,6 +261,33 @@ class Locales {
     "Could not get your location. Turn on Wi-Fi or move near a window, then try again.":
         "تعذّر تحديد موقعك. فعّل الواي فاي أو اقترب من نافذة ثم حاول مرة أخرى.",
 
+
+    // ---- Demo data ----
+    "Demo data": "بيانات تجريبية",
+    "Generate demo data": "إنشاء البيانات",
+    "Fills the app with @c courses, @l lecturers and @s students, with lectures and past attendance — ready for screenshots and demos. Anything that already exists is kept.":
+        "يعبّي التطبيق بـ @c مقرر و@l محاضر و@s طالب، مع محاضرات وسجل حضور سابق، جاهزة للتصوير والعرض. البيانات الموجودة تبقى كما هي.",
+    "Every new account gets its own strong password. You will see them all once at the end, with a button to copy them.":
+        "كل حساب جديد له كلمة مرور قوية خاصة فيه، وبتظهر لك كلها مرة وحدة في النهاية مع زر لنسخها.",
+    "New accounts": "الحسابات الجديدة",
+    "Copy these passwords now and keep them somewhere safe. They are shown only once and are not saved in the app.":
+        "انسخي كلمات المرور الآن واحفظيها في مكان آمن، لأنها تظهر مرة وحدة فقط ولا تُحفظ في التطبيق.",
+    "Copied. Paste it into Excel or Notes and save it.": "تم النسخ. الصقيها في Excel أو الملاحظات واحفظيها.",
+    "Copy all (for Excel)": "نسخ الكل (لـ Excel)",
+    "Close": "إغلاق",
+    "Delete demo lectures": "حذف المحاضرات التجريبية",
+    "Creating courses…": "جارٍ إنشاء المقررات…",
+    "Creating accounts… @n/@total": "جارٍ إنشاء الحسابات… @n/@total",
+    "Creating lectures and attendance… @n/@total": "جارٍ إنشاء المحاضرات والحضور… @n/@total",
+    "Deleting demo lectures…": "جارٍ حذف المحاضرات التجريبية…",
+    "Done: @a new accounts, @l lectures and @t attendance records.":
+        "تم: @a حساب جديد، و@l محاضرة، و@t سجل حضور.",
+    "Firebase allows a limited number of new accounts per hour. Run it again in an hour to finish.":
+        "Firebase يسمح بعدد محدود من الحسابات الجديدة كل ساعة. شغّله مرة ثانية بعد ساعة لإكمال الباقي.",
+    "This deletes the demo lectures and their attendance. Courses and accounts stay.":
+        "سيتم حذف المحاضرات التجريبية وسجلات حضورها، وتبقى المقررات والحسابات.",
+    "@n demo lectures deleted": "تم حذف @n محاضرة تجريبية",
+
     // ---- Profile ----
     "Change password": "تغيير كلمة المرور",
     "Current password": "كلمة المرور الحالية",

@@ -20,6 +20,10 @@ class CoursesView extends StatelessWidget {
       subtitle: 'Admin panel'.tr,
       actions: [
         HeaderButton(
+            icon: Icons.auto_awesome,
+            tooltip: 'Demo data'.tr,
+            onTap: c.openDemoSheet),
+        HeaderButton(
             icon: Icons.add_circle_outline,
             tooltip: 'Add Course'.tr,
             onTap: () => c.openForm()),
