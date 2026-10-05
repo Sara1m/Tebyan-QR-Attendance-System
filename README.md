@@ -38,6 +38,16 @@ The platform has three types of accounts:
 The app works on phones and computers, supports **Arabic (right-to-left)** and
 **English**, and can be added to the phone's home screen like a regular app (PWA).
 
+## Screenshots
+
+| Sign in | Lecturer home | Lectures |
+|:---:|:---:|:---:|
+| <img src="screenshots/login.jpg" width="260" alt="Sign-in page"/> | <img src="screenshots/lecturer-home.jpg" width="260" alt="Lecturer home page"/> | <img src="screenshots/lectures.jpg" width="260" alt="Lectures of a course"/> |
+
+| Attendance settings (expiry time and location check) | Attendance sheet |
+|:---:|:---:|
+| <img src="screenshots/attendance-settings.jpg" width="390" alt="Attendance settings"/> | <img src="screenshots/attendance-sheet.jpg" width="390" alt="Attendance sheet"/> |
+
 ## Background
 
 Tebyan was originally built as a **university team graduation project**.
