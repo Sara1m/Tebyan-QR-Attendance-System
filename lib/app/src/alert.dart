@@ -47,18 +47,55 @@ class Ui {
       color: AppColors.primaryColor,
       icon: Icons.info_outline);
 
-  static void success(String message) {
-    Get.closeAllSnackbars();
-    Get.showSnackbar(SuccessSnackBar(message: message));
-  }
+  /// Key of the app's ScaffoldMessenger, used when GetX cannot show a snackbar.
+  static final GlobalKey<ScaffoldMessengerState> messengerKey =
+      GlobalKey<ScaffoldMessengerState>();
 
-  static void error(String message) {
-    Get.closeAllSnackbars();
-    Get.showSnackbar(ErrorSnackBar(message: message));
-  }
+  static void success(String message) => _show(SuccessSnackBar(
+      message: message), message, AppColors.success, Icons.check_circle_outline);
 
-  static void info(String message) {
-    Get.closeAllSnackbars();
-    Get.showSnackbar(DefaultSnackBar(message: message));
+  static void error(String message) => _show(ErrorSnackBar(message: message),
+      message, AppColors.danger, Icons.error_outline);
+
+  static void info(String message) => _show(DefaultSnackBar(message: message),
+      message, AppColors.primaryColor, Icons.info_outline);
+
+  /// Shows the GetX snackbar when the app's overlay is ready. Otherwise it
+  /// falls back to Flutter's own snackbar, so an error message can never
+  /// crash the app and leave the screen stuck.
+  static void _show(
+      GetSnackBar bar, String message, Color color, IconData icon) {
+    if (Get.overlayContext != null) {
+      try {
+        Get.closeAllSnackbars();
+        Get.showSnackbar(bar);
+        return;
+      } catch (_) {
+        // Fall through to the Flutter snackbar below.
+      }
+    }
+    final messenger = messengerKey.currentState;
+    if (messenger == null) return;
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        content: Row(
+          children: [
+            Icon(icon, size: 24, color: Colors.white),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(message.tr,
+                  style: const TextStyle(
+                      color: Colors.white, fontSize: 14, height: 1.4)),
+            ),
+          ],
+        ),
+        backgroundColor: color,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        duration: const Duration(seconds: 4),
+      ));
   }
 }

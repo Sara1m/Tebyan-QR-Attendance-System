@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
 import 'app/routes/app_pages.dart';
+import 'app/src/alert.dart';
 import 'app/src/session.dart';
 import 'app/src/settings_service.dart';
 import 'firebase_options.dart';
@@ -28,6 +29,7 @@ Future<void> main() async {
   runApp(
     GetMaterialApp(
       title: 'Tebyan',
+      scaffoldMessengerKey: Ui.messengerKey,
       initialRoute: Session.isSignedIn ? Session.homeRoute : Routes.LOGIN,
       getPages: AppPages.routes,
       debugShowCheckedModeBanner: false,
