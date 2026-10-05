@@ -51,29 +51,54 @@ class Ui {
   static final GlobalKey<ScaffoldMessengerState> messengerKey =
       GlobalKey<ScaffoldMessengerState>();
 
-  static void success(String message) => _show(SuccessSnackBar(
-      message: message), message, AppColors.success, Icons.check_circle_outline);
+  static void success(String message) =>
+      _show(message, AppColors.success, Icons.check_circle_outline);
 
-  static void error(String message) => _show(ErrorSnackBar(message: message),
-      message, AppColors.danger, Icons.error_outline);
+  static void error(String message) =>
+      _show(message, AppColors.danger, Icons.error_outline);
 
-  static void info(String message) => _show(DefaultSnackBar(message: message),
-      message, AppColors.primaryColor, Icons.info_outline);
+  static void info(String message) =>
+      _show(message, AppColors.primaryColor, Icons.info_outline);
 
-  /// Shows the GetX snackbar when the app's overlay is ready. Otherwise it
-  /// falls back to Flutter's own snackbar, so an error message can never
-  /// crash the app and leave the screen stuck.
-  static void _show(
-      GetSnackBar bar, String message, Color color, IconData icon) {
-    if (Get.overlayContext != null) {
-      try {
-        Get.closeAllSnackbars();
-        Get.showSnackbar(bar);
-        return;
-      } catch (_) {
-        // Fall through to the Flutter snackbar below.
-      }
+  static OverlayEntry? _current;
+
+  /// Shows a message at the top of the screen, above every page and sheet.
+  /// It draws straight on the navigator's overlay, so it does not depend on
+  /// the GetX snackbar (which could crash and leave the screen stuck).
+  static void _show(String message, Color color, IconData icon) {
+    final overlay = Get.key.currentState?.overlay;
+    if (overlay == null) {
+      _showWithMessenger(message, color, icon);
+      return;
     }
+    _hideCurrent();
+    late final OverlayEntry entry;
+    void remove() {
+      if (entry.mounted) entry.remove();
+      if (identical(_current, entry)) _current = null;
+    }
+
+    entry = OverlayEntry(
+      builder: (context) => _Toast(
+        message: message.tr,
+        color: color,
+        icon: icon,
+        onTap: remove,
+      ),
+    );
+    _current = entry;
+    overlay.insert(entry);
+    Future.delayed(const Duration(seconds: 4), remove);
+  }
+
+  static void _hideCurrent() {
+    final entry = _current;
+    _current = null;
+    if (entry != null && entry.mounted) entry.remove();
+  }
+
+  /// Last resort if the overlay is not ready yet.
+  static void _showWithMessenger(String message, Color color, IconData icon) {
     final messenger = messengerKey.currentState;
     if (messenger == null) return;
     messenger
@@ -97,5 +122,71 @@ class Ui {
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         duration: const Duration(seconds: 4),
       ));
+  }
+}
+
+/// The coloured message card shown by [Ui].
+class _Toast extends StatelessWidget {
+  const _Toast({
+    required this.message,
+    required this.color,
+    required this.icon,
+    required this.onTap,
+  });
+
+  final String message;
+  final Color color;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 560),
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: 1),
+              duration: const Duration(milliseconds: 250),
+              builder: (context, t, child) => Opacity(
+                opacity: t,
+                child: Transform.translate(
+                    offset: Offset(0, -20 * (1 - t)), child: child),
+              ),
+              child: Material(
+                color: color,
+                elevation: 6,
+                borderRadius: BorderRadius.circular(16),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: onTap,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 18, vertical: 16),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(icon, size: 28, color: Colors.white),
+                        const SizedBox(width: 12),
+                        Flexible(
+                          child: Text(message,
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  height: 1.4)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
