@@ -6,7 +6,7 @@
 
 **A course management and QR-code attendance platform for universities.**
 
-[🌐 Live demo](https://tepyan-9e53b.web.app)
+[🌐 Live demo](https://tebyan.web.app)
 
 ![Flutter](https://img.shields.io/badge/Flutter-02569B?logo=flutter&logoColor=white)
 ![Firebase](https://img.shields.io/badge/Firebase-FFCA28?logo=firebase&logoColor=black)
@@ -109,7 +109,7 @@ online as a web app.
 ## Deployment
 
 The app is hosted on **Firebase Hosting**:
-👉 **https://tepyan-9e53b.web.app**
+👉 **https://tebyan.web.app**
 
 To publish a new version:
 
