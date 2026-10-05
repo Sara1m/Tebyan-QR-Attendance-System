@@ -40,11 +40,19 @@ The app works on phones and computers, supports **Arabic (right-to-left)** and
 
 ## Screenshots
 
-| Lecturer home | Lectures of a course |
+### Lecturer
+
+| Home | Lectures of a course |
 |:---:|:---:|
 | <img src="screenshots/lecturer-home.jpg" width="390" alt="Lecturer home page"/> | <img src="screenshots/lectures.jpg" width="390" alt="Lectures of a course"/> |
 | **Taking attendance** (code expiry and location check) | **Attendance list** |
 | <img src="screenshots/attendance-settings.jpg" width="390" alt="Attendance settings"/> | <img src="screenshots/attendance-sheet.jpg" width="390" alt="Attendance list"/> |
+
+### Student
+
+| Home | Attendance status in a course |
+|:---:|:---:|
+| <img src="screenshots/student-home.jpg" width="390" alt="Student home page"/> | <img src="screenshots/student-attendance.jpg" width="390" alt="Student attendance status"/> |
 
 ## Background
 
